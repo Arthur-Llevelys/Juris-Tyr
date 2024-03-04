@@ -62,14 +62,14 @@ sudo ufw reload
 #ServerName localhost
 #EOF
 #sudo sed -i '/ServerName localhost' /etc/apache2/conf-available/servername.con
-
-echo "Installation de MariaDB"
-sudo a2enconf servername.conf
-sudo systemctl reload apache2
+#
+#sudo a2enconf servername.conf
+#sudo systemctl reload apache2
 
 sudo chown www-data:www-data /var/www/html/ -R
 sudo chown www-data:www-data /var/www/ -R
 
+echo "Installation de MariaDB"
 # Install MariaDB server and client
 sudo apt install mariadb-server mariadb-client -y
 
