@@ -1,4 +1,4 @@
- ```bash
+# ```bash
 #!/bin/bash
 # Demandes des données pour l'installation 
 echo "Indiquez votre nom de domaine (exemple.com):"
