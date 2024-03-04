@@ -1,3 +1,4 @@
+'
 # ```bash
 #!/bin/bash
 # Demandes des données pour l'installation 
