@@ -29,6 +29,8 @@ echo "Installation du serveur web apache2"
 sudo apt install -y apache2 apache2-utils
 sudo systemctl start apache2
 sudo systemctl enable apache2
+
+# Allow HTTP traffic on port 80
 sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 
 echo "Installation du par feu UFW"
