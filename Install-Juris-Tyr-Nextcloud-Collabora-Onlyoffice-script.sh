@@ -58,13 +58,14 @@ sudo ufw allow 9980
 sudo ufw allow 9981
 sudo ufw reload
 
+cat <<EOF | sudo tee /etc/apache2/conf-available/servername.conf
 #sudo cat /etc/apache2/conf-available/servername.conf <<EOF
-#ServerName localhost
-#EOF
+ServerName localhost
+EOF
 #sudo sed -i '/ServerName localhost' /etc/apache2/conf-available/servername.con
 #
-#sudo a2enconf servername.conf
-#sudo systemctl reload apache2
+sudo a2enconf servername.conf
+sudo systemctl reload apache2
 
 sudo chown www-data:www-data /var/www/html/ -R
 sudo chown www-data:www-data /var/www/ -R
@@ -95,41 +96,36 @@ echo "Installation de PHP"
 
 #install php
 sudo apt install -y lsb-release gnupg2 ca-certificates apt-transport-https software-properties-common
-
 sudo add-apt-repository ppa:ondrej/php
-
 sudo apt update
-
 sudo apt install -y php8.2 libapache2-mod-php8.2 php8.2-mysql php-common php8.2-cli php8.2-common php-fpm php8.2-json php8.2-opcache php8.2-readline
-
 sudo a2enmod php8.2
-
 sudo systemctl restart apache2
-
 sudo a2dismod php8.2
-
 sudo apt install php8.2-fpm
-
 sudo a2enmod proxy_fcgi setenvif
+
 #Activate configuration file /etc/apache2/conf-available/php8.2-fpm.conf file :
 
 sudo a2enconf php8.2-fpm
+
 #Restart Apache for changes to take effect :
 
 sudo systemctl restart apache2
 
 sudo apt update && sudo apt install -y apache2 libapache2-mod-php8.2 php8.2 php8.2-gd php8.2-mysql php8.2-curl php8.2-mbstring php8.2-xml php8.2-zip unzip certbot python3-certbot-apache postgresql libpq-dev
 
-
 sudo apt install -y postgresql postgresql-contrib
 
-
 # Enable necessary Apache modules
+
 echo "Enabling required Apache modules..."
+
 sudo a2enmod rewrite headers expires ssl
 sudo systemctl restart apache2
 
 # Install PostgreSQL, create the nextcloud user and database
+
 echo "Installing PostgreSQL and configuring Nextcloud database..."
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
@@ -164,8 +160,8 @@ sudo a2enmod mpm_event
 sudo systemctl restart apache2
 sudo a2enmod http2
 
-cat > /etc/apache2/sites-available/nextcloud.conf <<EOF
-
+#cat > /etc/apache2/sites-available/nextcloud.conf <<EOF
+cat <<EOF | sudo tee /etc/apache2/sites-available/nextcloud.conf
  <VirtualHost *:80>
         <IfModule mod_http2.c>
            Protocols h2 http/1.1               
@@ -276,7 +272,7 @@ sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1024M/g' /etc/php/
 
 sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1024M/g' /etc/php/8.3/fpm/php.ini
 
-cat >> /etc/php/8.2/fpm/php.ini <<EOF
+cat <<EOF | sudo tee /etc/php/8.2/fpm/php.ini 
 opcache.enable=1
 opcache.enable_cli=1
 opcache.interned_strings_buffer=8
@@ -286,8 +282,7 @@ opcache.save_comments=1
 opcache.revalidate_freq=1
 EOF
 
-
-cat >> /etc/php/8.3/fpm/php.ini <<EOF
+cat <<EOF | sudo tee /etc/php/8.3/fpm/php.ini 
 opcache.enable=1
 opcache.enable_cli=1
 opcache.interned_strings_buffer=8
@@ -306,7 +301,7 @@ sudo apt install php8.2-redis php-redis php8.3-redis
 sudo phpenmod redis
 EOF
 
-cat >> /var/www/html/nextcloud/config/config.php <<EOF
+cat <<EOF | sudo tee /var/www/html/nextcloud/config/config.php
 'memcache.distributed' => '\OC\Memcache\Redis',
 'memcache.local' => '\OC\Memcache\Redis',
 'memcache.locking' => '\OC\Memcache\Redis',
@@ -328,7 +323,7 @@ sudo -u www-data php occ maintenance:mode --off
 
 sudo cp /var/www/html/nextcloud/config/config.php /var/www/html/nextcloud/config/config.save.php
 
-cat >> /var/www/html/nextcloud/config/config.php <<EOF
+cat <<EOF | sudo tee /var/www/html/nextcloud/config/config.php
 'session_lifetime' => 86400,
 'remember_login_cookie_lifetime' => 1296000,
 'session_relaxed_expiry' => false,
