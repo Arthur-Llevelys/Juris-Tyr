@@ -57,9 +57,10 @@ sudo ufw reload
 
 sudo apt install -y nano
 
-sudo nano /etc/apache2/conf-available/servername.conf <<EOF
-'ServerName localhost'
+sudo cat /etc/apache2/conf-available/servername.conf <<EOF
+ServerName localhost
 EOF
+#sudo sed -i '/ServerName localhost' /etc/apache2/conf-available/servername.con
 
 echo "Installation de MariaDB"
 
