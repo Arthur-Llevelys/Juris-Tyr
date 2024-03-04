@@ -11,7 +11,7 @@ if [[ "$NEXTCLOUD_PASSWORD" != "$NEXTCLOUD_PASSWORD_CONFIRM" ]]; then
     echo "Erreur : Les mots de passe saisis ne correspondent pas entre eux. Relancez le script"
     exit 1
 fi
-echo "Indiquez votre future adresse mail sous la forme contact@exemple.com ou john-snow@exemple.com:"
+echo "Indiquez votre adresse mail sous la forme contact@exemple.com ou john-snow@exemple.com:"
 read EMAIL
 # Continue with the installation process using provided inputs
 clear
