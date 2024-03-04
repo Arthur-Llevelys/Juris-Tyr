@@ -1,3 +1,4 @@
+```bash
 #!/bin/bash 
 # Ask for user inputs
 echo "Indiquez votre nom de domaine (exemple.com):"
@@ -662,3 +663,4 @@ EOF
 # Add the cronjob to www-data user's crontab
 crontab -u www-data /tmp/invoiceninja-cron.txt
 rm /tmp/invoiceninja-cron.txt
+```
