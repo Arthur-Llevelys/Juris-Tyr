@@ -1,4 +1,3 @@
- ```bash
 #!/bin/bash
 # Demandes des données pour l'installation 
 echo "Indiquez votre nom de domaine (exemple.com):"
@@ -769,8 +768,7 @@ echo "The IP address of this server is: $IP_ADDRESS"
 #echo "Si votre nom de domaine est géré par la société OVHCloud, connectez vous à l'adresse : https://www.ovh.com/manager/#/web/domain/$YOU_DOMAIN/zone"
 #echo "Complétez ou vérifiez la Zone DNS auprès de votre fournisseur de nom de domaine"
 #echo "La zone DNS doit être la suivante :"
-#echo "
-$TTL 3600
+#echo "$TTL 3600
 @	IN SOA ns11.ovh.net. tech.ovh.net.
         IN NS     ns11.ovh.net.
         IN NS     dns11.ovh.net.
@@ -795,4 +793,3 @@ www        IN A     $IP_ADDRESS
 
 "
 clear
-```
