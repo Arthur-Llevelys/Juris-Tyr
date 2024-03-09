@@ -763,33 +763,5 @@ sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email 
 sudo systemctl restart apache2
 #echo "Installation de Whisper WebUI terminée"
 IP_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com)
-echo "The IP address of this server is: $IP_ADDRESS"
-#echo "Compléter ou vérifier la Zone DNS auprès de votre fournisseur de nom de domaine"
-#echo "Si votre nom de domaine est géré par la société OVHCloud, connectez vous à l'adresse : https://www.ovh.com/manager/#/web/domain/$YOU_DOMAIN/zone"
-#echo "Complétez ou vérifiez la Zone DNS auprès de votre fournisseur de nom de domaine"
-#echo "La zone DNS doit être la suivante :"
-#echo "$TTL 3600
-@	IN SOA ns11.ovh.net. tech.ovh.net.
-        IN NS     ns11.ovh.net.
-        IN NS     dns11.ovh.net.
-        IN MX     50 mail
-     60 IN A     $IP_ADDRESS
-600 IN TXT     "v=spf1 mx ~all"
-affine        IN A     $IP_ADDRESS
-ai        IN A     $IP_ADDRESS
-cloud        IN A     $IP_ADDRESS
-collabora        IN A     $IP_ADDRESS
-facturation     60 IN A     $IP_ADDRESS
-librechat        IN A     $IP_ADDRESS
-mail        IN A     $IP_ADDRESS
-office     60 IN A     $IP_ADDRESS
-onlyoffice        IN A     $IP_ADDRESS
-pdf        IN A     $IP_ADDRESS
-postfixadmin     60 IN A     $IP_ADDRESS
-visio        IN A     $IP_ADDRESS
-vocal        IN A     $IP_ADDRESS
-webmail        IN A     $IP_ADDRESS
-www        IN A     $IP_ADDRESS
-
-"
+echo "L'addresse IP de ce server est : $IP_ADDRESS"
 clear
