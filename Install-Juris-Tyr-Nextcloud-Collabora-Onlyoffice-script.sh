@@ -360,18 +360,17 @@ array (
 );
 EOF
 sudo sed -i ');/' /var/www/html/nextcloud/config/config.php 
-cat >> /var/www/html/nextcloud/config/config.php  <<EOF
+cat >> /var/www/html/nextcloud/config/config.php <<EOF
 );
 EOF
 sudo sed -i '127.0.0.1   localhost/127.0.0.1   localhost $YOUR_DOMAIN cloud.$YOUR_DOMAIN    collabora.$YOUR_DOMAIN    onlyoffice.$YOUR_DOMAIN pdf.$YOUR_DOMAIN     ai.$YOUR_DOMAIN    visio.$YOUR_DOMAIN     facturation.$YOUR_DOMAIN' /etc/hosts
 sudo -u www-data crontab -e
-cat <<EOF > /tmp/nextcloud-cron.txt
-#Nextcloud
+cat >> /tmp/nextcloud-cron.txt <<EOF
 */5 * * * * php8.2 -f /var/www/html/nextcloud/cron.php
 @daily certbot renew --quiet && systemctl reload apache2
 EOF
-# Add the cronjob to www-data user's crontab
-crontab -u www-data /tmp/nextcloud-cron.txt
+#Add the cronjob to www-data user's crontab
+sudo crontab -u www-data /tmp/nextcloud-cron.txt
 rm /tmp/nextcloud-cron.txt
 cd /var/www/html/nextcloud
 sudo -u www-data php occ app:install approval
@@ -583,7 +582,7 @@ sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email $EMAIL
 sudo systemctl restart apache2
 sudo chown www-data:www-data /var/www/html/invoiceninja/storage/framework/cache/data/ -R
 sudo -u www-data crontab -e
-cat <<EOF > /tmp/invoiceninja-cron.txt
+cat  > /tmp/invoiceninja-cron.txt <<EOF
 #InvoiceNinja
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-recurring > /dev/null
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-reminders > /dev/null
