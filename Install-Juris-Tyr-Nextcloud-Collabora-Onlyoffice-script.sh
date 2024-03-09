@@ -128,7 +128,7 @@ sudo a2enmod http2
 cat > /etc/apache2/sites-available/nextcloud.conf <<EOF
  <VirtualHost *:80>
         <IfModule mod_http2.c>
-           Protocols h2 http/1.1               
+           Protocols h2 http/1.1
            # Solves slow upload speeds caused by http2
            H2WindowSize 5242880
         </IfModule>
@@ -197,12 +197,12 @@ sudo sed -i 'pm = dynamic
 pm.max_children = 120
 pm.start_servers = 12
 pm.min_spare_servers = 6
-pm.max_spare_servers = 18'  /etc/php/8.2/fpm/pool.d/www.conf
+pm.max_spare_servers = 18' /etc/php/8.2/fpm/pool.d/www.conf
 sudo sed -i 'pm = dynamic
 pm.max_children = 120
 pm.start_servers = 12
 pm.min_spare_servers = 6
-pm.max_spare_servers = 18'  /etc/php/8.3/fpm/pool.d/www.conf
+pm.max_spare_servers = 18' /etc/php/8.3/fpm/pool.d/www.conf
 sudo systemctl reload php8.2-fpm php8.3-fpm
 sudo sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
 sudo sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.3/fpm/pool.d/www.conf
@@ -363,7 +363,7 @@ sudo sed -i ');/' /var/www/html/nextcloud/config/config.php
 cat >> /var/www/html/nextcloud/config/config.php <<EOF
 );
 EOF
-sudo sed -i '127.0.0.1   localhost/127.0.0.1   localhost $YOUR_DOMAIN cloud.$YOUR_DOMAIN    collabora.$YOUR_DOMAIN    onlyoffice.$YOUR_DOMAIN pdf.$YOUR_DOMAIN     ai.$YOUR_DOMAIN    visio.$YOUR_DOMAIN     facturation.$YOUR_DOMAIN' /etc/hosts
+sudo sed -i '127.0.0.1   localhost/127.0.0.1 localhost $YOUR_DOMAIN cloud.$YOUR_DOMAIN    collabora.$YOUR_DOMAIN    onlyoffice.$YOUR_DOMAIN pdf.$YOUR_DOMAIN     ai.$YOUR_DOMAIN    visio.$YOUR_DOMAIN     facturation.$YOUR_DOMAIN' /etc/hosts
 sudo -u www-data crontab -e
 cat >> /tmp/nextcloud-cron.txt <<EOF
 */5 * * * * php8.2 -f /var/www/html/nextcloud/cron.php
@@ -435,18 +435,18 @@ sudo -u www-data php occ translate:download-models
 sudo apt install -y ffmpeg
 sudo add-apt-repository ppa:alex-p/tesseract-ocr5
 sudo apt update
-sudo apt install -y  tesseract-ocr
-sudo apt-get install -y  tesseract-ocr-fra
-sudo apt-get install -y  tesseract-ocr-deu
+sudo apt install -y tesseract-ocr
+sudo apt-get install -y tesseract-ocr-fra
+sudo apt-get install -y tesseract-ocr-deu
 echo "Paramétrage de Nextcloud terminé"
 echo "Installation CollaboraOnline"
 #Installation CollaboraOnline
 echo deb https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-ubuntu2204 ./ | sudo tee /etc/apt/sources.list.d/collabora.list
 sudo apt-key adv –keyserver keyserver.ubuntu.com –recv-keys 0C54D189F4BA284D ubuntu Collabora public key
 sudo wget https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-centos7/repodata/repomd.xml.key && sudo apt-key add repomd.xml.key
-sudo apt install -y  apt-transport-https ca-certificates
+sudo apt install -y apt-transport-https ca-certificates
 sudo apt update
-sudo apt install -y  coolwsd code-brand
+sudo apt install -y coolwsd code-brand
 sudo coolconfig set ssl.enable false
 sudo coolconfig set ssl.termination true
 sudo coolconfig set storage.wopi.host cloud.$YOUR_DOMAIN
@@ -484,21 +484,21 @@ cat > /etc/apache2/sites-available/collabora.conf <<EOF
 EOF
 sudo a2enmod proxy proxy_wstunnel proxy_http
 sudo a2ensite collabora.conf
-sudo apt install -y  certbot
-sudo apt install -y  python3-certbot-apache
+sudo apt install -y certbot
+sudo apt install -y python3-certbot-apache
 sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email $EMAIL -d collabora.$YOUR_DOMAIN
 sudo systemctl restart apache2
 echo "Installation CollaboraOnline terminée"
 echo "Installation d'OnlyOfffice"
 #install OnlyOffice
-sudo apt install -y  apt-transport-https ca-certificates curl software-propertie-common
+sudo apt install -y apt-transport-https ca-certificates curl software-propertie-common
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
 sudo apt update
-sudo apt install -y  apache2 vim docker-ce
+sudo apt install -y apache2 vim docker-ce
 sudo a2enmod ssl rewrite headers proxy proxy_http deflate cache proxy_wstunnel
 sudo systemctl restart apache2
-cat >  /etc/apache2/sites-available/onlyoffice.conf <<EOF
+cat > /etc/apache2/sites-available/onlyoffice.conf <<EOF
 <VirtualHost *:80>
   ServerName onlyoffice.$YOUR_DOMAIN
   ErrorLog ${APACHE_LOG_DIR}/onlyoffice.$YOUR_DOMAIN.error.log
@@ -521,12 +521,12 @@ sudo systemctl restart apache2
 sudo certbot –apache –agree-tos –redirect –hsts –staple-ocsp –email $EMAIL -d onlyoffice.$YOUR_DOMAIN
 sudo systemctl restart apache2
 sudo docker run -i -t -d --restart=always -e JWT_ENABLED=true -e JWT_SECRET=$NEXTCLOUD_PASSWORD -p 9981:80 \
-    -v /app/onlyoffice/DocumentServer/logs:/var/log/onlyoffice  \
-    -v /app/onlyoffice/DocumentServer/data:/var/www/onlyoffice/Data  \
+    -v /app/onlyoffice/DocumentServer/logs:/var/log/onlyoffice \
+    -v /app/onlyoffice/DocumentServer/data:/var/www/onlyoffice/Data \
     -v /app/onlyoffice/DocumentServer/lib:/var/lib/onlyoffice \
     -v /app/onlyoffice/DocumentServer/rabbitmq:/var/lib/rabbitmq \
     -v /app/onlyoffice/DocumentServer/redis:/var/lib/redis \
-    -v /app/onlyoffice/DocumentServer/db:/var/lib/postgresql  onlyoffice/documentserver:latest
+    -v /app/onlyoffice/DocumentServer/db:/var/lib/postgresql onlyoffice/documentserver:latest
 echo "Installation d'OnlyOfffice terminée"
 #installation postfix test
 #echo "Installation du serveur mail"
@@ -582,7 +582,7 @@ sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email $EMAIL
 sudo systemctl restart apache2
 sudo chown www-data:www-data /var/www/html/invoiceninja/storage/framework/cache/data/ -R
 sudo -u www-data crontab -e
-cat  > /tmp/invoiceninja-cron.txt <<EOF
+cat > /tmp/invoiceninja-cron.txt <<EOF
 #InvoiceNinja
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-recurring > /dev/null
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-reminders > /dev/null
@@ -622,7 +622,7 @@ sudo a2enmod rewrite
 sudo systemctl restart apache2
 sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email you@example.com -d pdf.$YOUR_DOMAIN
 sudo systemctl restart apache2 php8.2-fpm php8.3-fpm
-cd  /var/www/html/signaturepdf/
+cd /var/www/html/signaturepdf/
 sudo git pull -r
 #echo "Installation de SignaturePDf terminée"
 #echo "Installation de WordPress"
@@ -641,7 +641,7 @@ sudo sed -i 'define('DB_USER', 'username_here');/define('DB_USER', 'wpuser');' /
 sudo sed -i 'define('DB_PASSWORD', 'password_here');/define('DB_PASSWORD', '$NEXTCLOUD_PASSWORD');' /var/www/$YOUR_DOMAIN/wp-config.php
 sudo chown www-data:www-data /var/www/example.com/ -R
 cat > /etc/apache2/sites-available/wordpress.conf <<EOF
-<VirtualHost *:80>       
+<VirtualHost *:80> 
         ServerName www.$YOUR_DOMAIN
        ServerAlias $YOUR_DOMAIN
         DocumentRoot /var/www/$YOUR_DOMAIN
@@ -655,7 +655,7 @@ cat > /etc/apache2/sites-available/wordpress.conf <<EOF
 EOF
 sudo a2ensite $YOUR_DOMAIN.conf
 sudo systemctl reload apache2
-sudo apt install -y php8.2-mbstring php8.2-xml php8.2-mysql  php8.2-gd php8.2-bcmath php8.2-json php8.2-cli php8.2-curl php8.2-zip
+sudo apt install -y php8.2-mbstring php8.2-xml php8.2-mysql php8.2-gd php8.2-bcmath php8.2-json php8.2-cli php8.2-curl php8.2-zip
 sudo apt install -y certbot python3-certbot-apache
 sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email $EMAIL -d $YOUR_DOMAIN,www.$YOUR_DOMAIN
 sudo systemctl restart apache2
@@ -696,8 +696,8 @@ sudo apt install nodejs npm
 curl https://ollama.ai/install.sh | sh
 sudo docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main
 cat > /etc/apache2/sites-available/ollamabwebui.conf <<EOF
-<VirtualHost  *:80>
-ServerName  ai.$YOUR_DOMAIN
+<VirtualHost *:80>
+ServerName ai.$YOUR_DOMAIN
 ProxyPreserveHost On
 ProxyVia On
 ProxyPass / http://127.0.0.1:3000/
@@ -724,7 +724,7 @@ CustomLog ${APACHE_LOG_DIR}/ollamawebui.$YOUR_DOMAIN.access.log combined
 EOF
 sudo a2ensite ai.$YOUR_DOMAIN.conf
 sudo systemctl reload apache2
-sudo apt install -y php8.2-mbstring php8.2-xml php8.2-mysql  php8.2-gd php8.2-bcmath php8.2-json php8.2-cli php8.2-curl php8.2-zip
+sudo apt install -y php8.2-mbstring php8.2-xml php8.2-mysql php8.2-gd php8.2-bcmath php8.2-json php8.2-cli php8.2-curl php8.2-zip
 sudo apt install -y certbot python3-certbot-apache
 sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email $EMAIL -d ai.$YOUR_DOMAIN
 sudo systemctl restart apache2
