@@ -125,7 +125,7 @@ sudo a2dismod mpm_prefork
 sudo a2enmod mpm_event
 sudo systemctl restart apache2
 sudo a2enmod http2
-cat > /etc/apache2/sites-available/nextcloud.conf <<EOF
+cat >> /etc/apache2/sites-available/nextcloud.conf <<EOF
  <VirtualHost *:80>
         <IfModule mod_http2.c>
            Protocols h2 http/1.1
@@ -451,7 +451,7 @@ sudo coolconfig set ssl.enable false
 sudo coolconfig set ssl.termination true
 sudo coolconfig set storage.wopi.host cloud.$YOUR_DOMAIN
 sudo systemctl restart coolwsd
-cat > /etc/apache2/sites-available/collabora.conf <<EOF
+cat >> /etc/apache2/sites-available/collabora.conf <<EOF
 <VirtualHost *:80>
   Protocols h2 http/1.1
   ServerName collabora.$YOUR_DOMAIN
@@ -498,7 +498,7 @@ sudo apt update
 sudo apt install -y apache2 vim docker-ce
 sudo a2enmod ssl rewrite headers proxy proxy_http deflate cache proxy_wstunnel
 sudo systemctl restart apache2
-cat > /etc/apache2/sites-available/onlyoffice.conf <<EOF
+cat >> /etc/apache2/sites-available/onlyoffice.conf <<EOF
 <VirtualHost *:80>
   ServerName onlyoffice.$YOUR_DOMAIN
   ErrorLog ${APACHE_LOG_DIR}/onlyoffice.$YOUR_DOMAIN.error.log
@@ -558,7 +558,7 @@ sudo chown www-data:www-data /var/www/html/invoiceninja/.env
 sudo php8.2 /var/www/html/invoiceninja/artisan key:generate
 sudo php8.2 /var/www/html/invoiceninja/artisan migrate:fresh --seed
 sudo -u www-data ./vendor/bin/snappdf download
-cat > /etc/apache2/sites-available/invoice-ninja.conf <<EOF
+cat >> /etc/apache2/sites-available/invoice-ninja.conf <<EOF
 <VirtualHost *:80>
     ServerName facturation.$YOUR_DOMAIN
     DocumentRoot /var/www/html/invoiceninja/public
@@ -582,7 +582,7 @@ sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email $EMAIL
 sudo systemctl restart apache2
 sudo chown www-data:www-data /var/www/html/invoiceninja/storage/framework/cache/data/ -R
 sudo -u www-data crontab -e
-cat > /tmp/invoiceninja-cron.txt <<EOF
+cat >> /tmp/invoiceninja-cron.txt <<EOF
 #InvoiceNinja
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-recurring > /dev/null
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-reminders > /dev/null
@@ -604,7 +604,7 @@ sudo sed -i '#PDF_STORAGE_PATH=/path/to/folder/PDF_STORAGE_PATH=/var/www/html/si
 sudo mkdir /var/www/html/signaturepdf/pdfuploaded
 sudo chown www-data:www-data -R /var/www/html/signaturepdf/pdfuploaded
 sudo php -S localhost:8000 -t public
-cat > /etc/apache2/sites-available/pdf.conf <<EOF
+cat >> /etc/apache2/sites-available/pdf.conf <<EOF
 <VirtualHost *:80>
 Servername pdf.$YOUR_DOMAIN
 DocumentRoot /var/www/html/signaturepdf/public
@@ -640,7 +640,7 @@ sudo sed -i 'define('DB_NAME', 'database_name_here');/define('DB_NAME', 'wordpre
 sudo sed -i 'define('DB_USER', 'username_here');/define('DB_USER', 'wpuser');' /var/www/$YOUR_DOMAIN/wp-config.php
 sudo sed -i 'define('DB_PASSWORD', 'password_here');/define('DB_PASSWORD', '$NEXTCLOUD_PASSWORD');' /var/www/$YOUR_DOMAIN/wp-config.php
 sudo chown www-data:www-data /var/www/example.com/ -R
-cat > /etc/apache2/sites-available/wordpress.conf <<EOF
+cat >> /etc/apache2/sites-available/wordpress.conf <<EOF
 <VirtualHost *:80> 
         ServerName www.$YOUR_DOMAIN
        ServerAlias $YOUR_DOMAIN
@@ -695,7 +695,7 @@ sudo apt install build-essential
 sudo apt install nodejs npm
 curl https://ollama.ai/install.sh | sh
 sudo docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main
-cat > /etc/apache2/sites-available/ollamabwebui.conf <<EOF
+cat >> /etc/apache2/sites-available/ollamabwebui.conf <<EOF
 <VirtualHost *:80>
 ServerName ai.$YOUR_DOMAIN
 ProxyPreserveHost On
@@ -737,7 +737,7 @@ sudo npm install
 sudo chown www-data:www-data -R /var/www/html/whisper-web
 sudo chmod 775 -R /var/www/html/whisper-web
 sudo npm run dev 
-cat > /etc/apache2/sites-available/vocal.conf <<EOF
+cat >> /etc/apache2/sites-available/vocal.conf <<EOF
 <VirtualHost *:80>
 ServerName vocal.$YOUR_DOMAIN
 ProxyPreserveHost On
