@@ -2,6 +2,8 @@
 # Demandes des données pour l'installation 
 echo "Indiquez votre nom de domaine (exemple.com):"
 read YOUR_DOMAIN
+echo "Indiquez votre nom d'utilisateur administrateur pour Nextcloud, InvoiceNinja et Wordpress:"
+read NEXTCLOUD_USER
 echo "Choisir un mot de passe long et original (https://www.avast.com/fr-fr/random-password-generator#pc) :"
 read -s NEXTCLOUD_PASSWORD
 echo "Confirmez votre mot de passe :"
@@ -10,7 +12,7 @@ if [[ "$NEXTCLOUD_PASSWORD" != "$NEXTCLOUD_PASSWORD_CONFIRM" ]]; then
     echo "Erreur : Les mots de passe saisis ne correspondent pas entre eux. Relancez le script"
     exit 1
 fi
-echo "Indiquez votre adresse mail sous la forme contact@exemple.com ou john-snow@exemple.com:"
+echo "Indiquez votre adresse mail sous la forme contact@exemple.com ou john-snow@exemple.com (si vous etes John SNOW):"
 read EMAIL
 # Continue with the installation process using provided inputs
 clear
@@ -24,7 +26,7 @@ sudo systemctl start apache2
 sudo systemctl enable apache2
 sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 echo "Installation du par feu UFW"
-sudo apt install ufw
+sudo apt install -y ufw
 sudo ufw allow ssh
 sudo ufw enable
 sudo ufw allow http
@@ -57,7 +59,7 @@ sudo chown www-data:www-data /var/www/html/ -R
 sudo chown www-data:www-data /var/www/ -R
 # Install MariaDB server and client
 echo "Installation de MariaDB"
-sudo apt install mariadb-server mariadb-client -y
+sudo apt install -y mariadb-server mariadb-client
 # Start MariaDB (if not automatically started)
 sudo systemctl start mariadb
 # Enable MariaDB to start automatically on boot
@@ -81,7 +83,7 @@ sudo apt install -y php8.2 libapache2-mod-php8.2 php8.2-mysql php-common php8.2-
 sudo a2enmod php8.2
 sudo systemctl restart apache2
 sudo a2dismod php8.2
-sudo apt install php8.2-fpm
+sudo apt install -y php8.2-fpm
 sudo a2enmod proxy_fcgi setenvif
 #Activate configuration file /etc/apache2/conf-available/php8.2-fpm.conf file :
 sudo a2enconf php8.2-fpm
@@ -99,24 +101,24 @@ echo "Installation de PostgreSQL and configuration de la base de données de Nex
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 sudo -u postgres psql <<EOF
-CREATE USER nextclouduser WITH ENCRYPTED PASSWORD '$NEXTCLOUD_PASSWORD';
+CREATE USER $NEXTCLOUD_USER WITH ENCRYPTED PASSWORD '$NEXTCLOUD_PASSWORD';
 CREATE DATABASE nextcloud;
-GRANT ALL PRIVILEGES ON DATABASE nextcloud TO nextclouduser;
+GRANT ALL PRIVILEGES ON DATABASE nextcloud TO $NEXTCLOUD_USER;
 \q
 EOF
-echo "Installation de PostgreSQL and configuration de la base de données de Nextcloud terminée"
 echo "Installation de Nextcloud"
-sudo apt install unzip
-# Download and extract Nextcloud 28.0.1, set correct ownership
-echo "Downloading Nextcloud, extraction, and setting ownership..."
+sudo apt install -y unzip
+# Téléchargement et extraction de Nextcloud 28.0.1
+
+echo "Téléchargement de Nextcloud, extraction et propriété..."
 cd /var/www/html
-sudo wget https://download.nextcloud.com/server/releases/nextcloud-28.1.0.zip
+sudo wget https://download.nextcloud.com/server/releases/nextcloud-28.0.1.zip
 sudo unzip nextcloud-28.0.1.zip
 sudo mv nextcloud-28.0.1/* .
-sudo chown -R www-data:www-data /var/www/html/
-sudo chmod 750 /var/www/html/config
-sudo chmod 750 /var/www/html/core
-sudo find /var/www/html -type f -exec chmod 640 {} \;
+sudo chown -R www-data:www-data /var/www/html/nextcloud
+sudo chmod 750 /var/www/html/nextcloud/config
+sudo chmod 750 /var/www/html/nextcloud/core
+sudo find /var/www/html/nextcloud -type f -exec chmod 640 {} \;
 echo "Configuration du serveur web apache pour Nextcloud"
 # Configure Apache for Nextcloud
 echo "Configuring Apache for Nextcloud..."
@@ -154,7 +156,7 @@ cat >> /etc/apache2/sites-available/nextcloud.conf <<EOF
         SetEnv HTTP_HOME /var/www/html/nextcloud
         Satisfy Any
     # Disable HTTP TRACE method.
-    TraceEnable off
+    #TraceEnable off
     <Files ".ht*">
         Require all denied
     </Files>
@@ -167,8 +169,8 @@ sudo a2dismod php8.2
 sudo a2dismod mpm_prefork
 sudo a2dismod mpm_prefork
 sudo systemctl restart apache2 php8.2-fpm
-sudo apt install imagemagick libapache2-mod-php php-imagick php8.2-common php8.2-pgsql php8.2-fpm php8.2-gd php8.2-curl php8.2-imagick php8.2-zip php8.2-xml php8.2-mbstring php8.2-bz2 php8.2-intl php8.2-bcmath php8.2-gmp
-sudo apt install imagemagick libapache2-mod-php php-imagick php8.3-common php8.3-pgsql php8.3-fpm php8.3-gd php8.3-curl php8.3-imagick php8.3-zip php8.3-xml php8.3-mbstring php8.3-bz2 php8.3-intl php8.3-bcmath php8.3-gmp
+sudo apt install -y imagemagick libapache2-mod-php php-imagick php8.2-common php8.2-pgsql php8.2-fpm php8.2-gd php8.2-curl php8.2-imagick php8.2-zip php8.2-xml php8.2-mbstring php8.2-bz2 php8.2-intl php8.2-bcmath php8.2-gmp
+sudo apt install -y imagemagick libapache2-mod-php php-imagick php8.3-common php8.3-pgsql php8.3-fpm php8.3-gd php8.3-curl php8.3-imagick php8.3-zip php8.3-xml php8.3-mbstring php8.3-bz2 php8.3-intl php8.3-bcmath php8.3-gmp
 sudo wget -O /usr/local/bin/php-module-builder https://global-social.net/apps/raw/s/php-module-builder
 sudo chmod +x /usr/local/bin/php-module-builder
 cd /usr/local/bin/
@@ -177,18 +179,19 @@ sudo systemctl reload apache2 php8.2-fpm php8.3-fpm
 sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 echo "Installation de LetsEncrypt et configuration"
-sudo apt install certbot python3-certbot-apache
+sudo apt install -y certbot python3-certbot-apache
 sudo certbot --apache --agree-tos --redirect --staple-ocsp --email $EMAIL -d cloud.$YOUR_DOMAIN
 sudo chmod 750 /var/www/html/config
 sudo chmod 750 /var/www/html/core
 sudo find /var/www/html -type f -exec chmod 640 {} \;
-echo "Installation and configuration completed! You can access your Nextcloud instance at https://$YOUR_DOMAIN"
+echo "Installation et configuration terminées ! Vous pouvez accéder à votre instance Nextcloud à
+ https://cloud.$YOUR_DOMAIN"
 # Modify the nextcloud-le-ssl.conf file to add HSTS header
 echo "Modifying nextcloud-le-ssl.conf to add HSTS header..."
 sudo sed -i 's/#Header always set Strict-Transport-Security "max-age=31536000"/Header always set Strict-Transport-Security "max-age=31536000"/' /etc/letsencrypt/options-ssl-apache.conf
 sudo systemctl restart apache2
 # Cleanup
-echo "Cleaning up..."
+echo "Nettoyage..."
 sudo apt autoremove -y
 echo "Installation de Nextcloud terminée"
 echo "Amélioration des performances de Nextcloud"
@@ -214,7 +217,7 @@ sudo sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 1024M/g' /etc/php/
 cat >> /etc/php/8.2/fpm/php.ini <<EOF
 opcache.enable=1
 opcache.enable_cli=1
-opcache.interned_strings_buffer=8
+opcache.interned_strings_buffer=32
 opcache.max_accelerated_files=10000
 opcache.memory_consumption=128
 opcache.save_comments=1
@@ -223,7 +226,7 @@ EOF
 cat >> /etc/php/8.3/fpm/php.ini <<EOF
 opcache.enable=1
 opcache.enable_cli=1
-opcache.interned_strings_buffer=8
+opcache.interned_strings_buffer=32
 opcache.max_accelerated_files=10000
 opcache.memory_consumption=128
 opcache.save_comments=1
@@ -231,10 +234,10 @@ opcache.revalidate_freq=1
 EOF
 sudo systemctl restart php8.2-fpm php8.3-fpm apache2
 echo "Installation de Redis"
-sudo apt install redis-server
+sudo apt install -y redis-server
 sudo systemctl start redis-server
 sudo systemctl enable redis-server
-sudo apt install php8.2-redis php-redis php8.3-redis
+sudo apt install -y php8.2-redis php-redis php8.3-redis
 sudo phpenmod redis
 EOF
 cat >> /var/www/html/nextcloud/config/config.php <<EOF
@@ -363,8 +366,14 @@ sudo sed -i ');/' /var/www/html/nextcloud/config/config.php
 cat >> /var/www/html/nextcloud/config/config.php <<EOF
 );
 EOF
+sudo apt-get install -y libmagickcore-6.q16-6-extra
+sudo apt install -y ffmpeg
 sudo sed -i '127.0.0.1   localhost/127.0.0.1 localhost $YOUR_DOMAIN cloud.$YOUR_DOMAIN    collabora.$YOUR_DOMAIN    onlyoffice.$YOUR_DOMAIN pdf.$YOUR_DOMAIN     ai.$YOUR_DOMAIN    visio.$YOUR_DOMAIN     facturation.$YOUR_DOMAIN' /etc/hosts
+echo "Tapez la touche 1 pour choisir l'éditeur de texte nano puis sur les touches Control et C"
 sudo -u www-data crontab -e
+echo "1"
+read -s 1
+$1
 cat >> /tmp/nextcloud-cron.txt <<EOF
 */5 * * * * php8.2 -f /var/www/html/nextcloud/cron.php
 @daily certbot renew --quiet && systemctl reload apache2
@@ -456,18 +465,18 @@ cat >> /etc/apache2/sites-available/collabora.conf <<EOF
   Protocols h2 http/1.1
   ServerName collabora.$YOUR_DOMAIN
   Options -Indexes
-  ErrorLog “/var/log/apache2/collabora_error”
+  #ErrorLog "/var/log/apache2/collabora_error"
   # Encoded slashes need to be allowed
     AllowEncodedSlashes NoDecode
   # keep the host
     ProxyPreserveHost On
-  # static html, js, images, etc. served from coolwsd
+ # static html, js, images, etc. served from coolwsd
   # loleaflet/browser is the client part of Collabora Online
     ProxyPass /loleaflet http://127.0.0.1:9980/loleaflet retry=0
     ProxyPassReverse /loleaflet http://127.0.0.1:9980/loleaflet
     ProxyPass /browser http://127.0.0.1:9980/browser retry=0
     ProxyPassReverse /browser http://127.0.0.1:9980/browser
-  # WOPI discovery URL
+ # WOPI discovery URL
     ProxyPass /hosting/discovery http://127.0.0.1:9980/hosting/discovery retry=0
     ProxyPassReverse /hosting/discovery http://127.0.0.1:9980/hosting/discovery
   # Capabilities
@@ -532,19 +541,23 @@ echo "Installation d'OnlyOfffice terminée"
 #echo "Installation du serveur mail"
 #curl -s https://mailinabox.email/setup.sh | sudo bash
 #echo "Pour terminer l'installation du serveur e-mail, visionnez cette vidéo : https://www.youtube.com/watch?v=9WOmkoEYMIg&t=856s"
+#echo "Installation de php composer"
+cd ~
+curl -sS https://getcomposer.org/installer -o composer-setup.php
+sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 #echo "Installation de InvoiceNinja"
 sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.8.23/invoiceninja.zip
-sudo apt install unzip
+sudo apt install -y unzip
 sudo mkdir -p /var/www/html/invoiceninja/
 sudo unzip invoiceninja.zip -d /var/www/html/invoiceninja/
 sudo chown www-data:www-data /var/www/html/invoiceninja/ -R
 sudo chmod 755 /var/www/html/invoiceninja/storage/ -R
 sudo mysql -e "
 create database invoiceninja;
-create user 'ninja'@'localhost' identified by '$NEXTCLOUD_PASSWORD';
-grant all privileges on invoiceninja.* to 'ninja'@'localhost';
+create user '$NEXTCLOUD_USER'@'localhost' identified by '$NEXTCLOUD_PASSWORD';
+grant all privileges on invoiceninja.* to '$NEXTCLOUD_USER'@'localhost';
 flush privileges;"
-sudo apt install software-properties-common
+sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt install -y php-imagick php8.2 php8.2-mysql php8.2-fpm php8.2-common php8.2-bcmath php8.2-gd php8.2-curl php8.2-zip php8.2-xml php8.2-mbstring php8.2-bz2 php8.2-intl php8.2-gmp php8.2-fileinfo php8.2-pdo
 sudo apt install -y php-imagick php8.3 php8.3-mysql php8.3-fpm php8.3-common php8.3>-bcmath php8.3-gd php8.3-curl php8.3-zip php8.3-xml php8.3-mbstring php8.3-bz2 php8.3-intl php8.3-gmp php8.3-fileinfo php8.3-pdo
@@ -589,7 +602,7 @@ cat >> /tmp/invoiceninja-cron.txt <<EOF
 * * * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan schedule:run >> /dev/null 2>&1
 EOF
 # Add the cronjob to www-data user's crontab
-crontab -u www-data /tmp/invoiceninja-cron.txt
+sudo crontab -u www-data /tmp/invoiceninja-cron.txt
 rm /tmp/invoiceninja-cron.txt
 #echo "Installation de InvoiceNinja terminée"
 #echo "Installation de SignaturePDf"
@@ -600,10 +613,11 @@ sudo chown www-data:www-data -R /var/www/html/signaturepdf
 sudo chmod 755 -R /var/www/html/signaturepdf/public
 cd /var/www/html/signaturepdf/
 sudo cp config/config.ini{.example,}
-sudo sed -i '#PDF_STORAGE_PATH=/path/to/folder/PDF_STORAGE_PATH=/var/www/html/signaturepdf/pdfuploaded' /var/www/html/signaturepdf/config.ini
+sudo sed -i '#PDF_STORAGE_PATH=/path/to/folder/PDF_STORAGE_PATH=/var/www/html/signaturepdf/pdfuploaded'/var/www/html/signaturepdf/config.ini
 sudo mkdir /var/www/html/signaturepdf/pdfuploaded
 sudo chown www-data:www-data -R /var/www/html/signaturepdf/pdfuploaded
 sudo php -S localhost:8000 -t public
+clear
 cat >> /etc/apache2/sites-available/pdf.conf <<EOF
 <VirtualHost *:80>
 Servername pdf.$YOUR_DOMAIN
@@ -620,7 +634,7 @@ EOF
 sudo a2ensite pdf.conf
 sudo a2enmod rewrite
 sudo systemctl restart apache2
-sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email you@example.com -d pdf.$YOUR_DOMAIN
+sudo certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email $EMAIL -d pdf.$YOUR_DOMAIN
 sudo systemctl restart apache2 php8.2-fpm php8.3-fpm
 cd /var/www/html/signaturepdf/
 sudo git pull -r
@@ -631,16 +645,16 @@ sudo unzip latest.zip -d /var/www/
 sudo mv /var/www/wordpress /var/www/$YOUR_DOMAIN
 sudo mysql -e "
 create database wordpress;
-create user 'wpuser@localhost' identified by '$NEXTCLOUD_PASSWORD';
-grant all privileges on wordpress.* to 'wpuser@localhost';
+create user '$NEXTCLOUD_USER@localhost' identified by '$NEXTCLOUD_PASSWORD';
+grant all privileges on wordpress.* to '$NEXTCLOUD_USER@localhost';
 flush privileges;"
-cd /var/www/$YOUR_DOMAIN/
+cd /var/www/$YOUR_DOMAIN
 sudo cp wp-config-sample.php wp-config.php
-sudo sed -i 'define('DB_NAME', 'database_name_here');/define('DB_NAME', 'wordpress');' /var/www/$YOUR_DOMAIN/wp-config.php
-sudo sed -i 'define('DB_USER', 'username_here');/define('DB_USER', 'wpuser');' /var/www/$YOUR_DOMAIN/wp-config.php
-sudo sed -i 'define('DB_PASSWORD', 'password_here');/define('DB_PASSWORD', '$NEXTCLOUD_PASSWORD');' /var/www/$YOUR_DOMAIN/wp-config.php
+sudo sed -i 'define( 'DB_NAME', 'database_name_here' );/define('DB_NAME', 'wordpress' );' /var/www/$YOUR_DOMAIN/wp-config.php
+sudo sed -i 'define( 'DB_USER', 'username_here' );/define( 'DB_USER', 'NEXTCLOUD_USER' );' /var/www/$YOUR_DOMAIN/wp-config.php
+sudo sed -i 'define( 'DB_PASSWORD', 'password_here' );/define( 'DB_PASSWORD', '$NEXTCLOUD_PASSWORD' );' /var/www/$YOUR_DOMAIN/wp-config.php
 sudo chown www-data:www-data /var/www/example.com/ -R
-cat >> /etc/apache2/sites-available/wordpress.conf <<EOF
+cat >> /etc/apache2/sites-available/$YOUR_DOMAIN.conf <<EOF
 <VirtualHost *:80> 
         ServerName www.$YOUR_DOMAIN
        ServerAlias $YOUR_DOMAIN
@@ -663,18 +677,18 @@ sudo systemctl restart apache2
 #echo "Installation de Jitsi Meet"
 echo 'deb https://download.jitsi.org stable/' | sudo tee /etc/apt/sources.list.d/jitsi-stable.list
 sudo wget -qO - https://download.jitsi.org/jitsi-key.gpg.key | sudo apt-key add -
-sudo apt install apt-transport-https
+sudo apt install -y apt-transport-https
 #echo "A la prochaine étape, indiquez l'adresse : visio.exemple.com ou visio.snow-company.com puis appuyez sur la touche Enter"
 sudo apt update sudo apt install jitsi-meet
 #echo "Installation du serveur coturn"
 sudo wget http://mirrors.edge.kernel.org/ubuntu/pool/universe/c/coturn/coturn_4.5.2-3.1_amd64.deb
-sudo apt install ./coturn_4.5.2-3.1_amd64.deb
-sudo apt install jitsi-meet-turnserver
+sudo ./coturn_4.5.2-3.1_amd64.deb
+sudo apt install -y jitsi-meet-turnserver
 sudo ufw allow 22,80,443,5349/tcp 
 sudo ufw allow 10000,3478/udp
 sudo /usr/share/jitsi-meet/scripts/install-letsencrypt-cert.sh
 sudo certbot --agree-tos -a dns-cloudflare -i apache --redirect --hsts --staple-ocsp --email $EMAIL -d visio.$YOUR_DOMAIN
-sudo apt install acl 
+sudo apt install -y acl 
 sudo setfacl -R -m u:prosody:rx /etc/letsencrypt/live /etc/letsencrypt/archive/ 
 sudo setfacl -R -m u:jicofo:rx /etc/letsencrypt/live /etc/letsencrypt/archive/ 
 sudo setfacl -R -m u:jvb:rx /etc/letsencrypt/live /etc/letsencrypt/archive/
@@ -686,16 +700,18 @@ sudo apt update
 sudo apt install -y python3-pip
 sudo apt install -y build-essential libssl-dev libffi-dev python3-dev
 sudo apt install -y python3-venv
-sudo apt install ca-certificates curl gnupg
+sudo apt install -y ca-certificates curl gnupg
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 sudo echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
 sudo apt update
-sudo apt install nodejs
-sudo apt install build-essential
-sudo apt install nodejs npm
-curl https://ollama.ai/install.sh | sh
-sudo docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main
-cat >> /etc/apache2/sites-available/ollamabwebui.conf <<EOF
+sudo apt install -y nodejs
+sudo apt install -y build-essential
+sudo apt install -y nodejs npm
+sudo curl https://ollama.ai/install.sh | sh
+sudo systemctl start ollama
+sudo systemctl enable enable
+sudo docker run -d --network=host -v open-webui:/app/backend/data -e OLLAMA_BASE_URL=http://127.0.0.1:11434 --name open-webui --restart always ghcr.io/open-webui/open-webui:main
+cat >> /etc/apache2/sites-available/ai.conf <<EOF
 <VirtualHost *:80>
 ServerName ai.$YOUR_DOMAIN
 ProxyPreserveHost On
@@ -711,24 +727,35 @@ RewriteRule ^/(.*)?$ http://localhost:3000/$1 [P,L]
   ProxyPassReverse "http://127.0.0.1:3000/"
     Allow from all
 </Location>
-<Location "/post-log-in">
+<Location "/">
   ProxyPass "http://127.0.0.1:11434/"
   ProxyPassReverse "http://127.0.0.1:11434/"
     Allow from all
 </Location>
 ProxyPass / "http://127.0.0.1:11434"
 ProxyPassReverse / "http://127.0.0.1:11434"
+ProxyPass / "http://127.0.0.1:8080"
+ProxyPassReverse / "http://127.0.0.1:8080"
 ErrorLog ${APACHE_LOG_DIR}/ollamawebui.$YOUR_DOMAIN.error.log
 CustomLog ${APACHE_LOG_DIR}/ollamawebui.$YOUR_DOMAIN.access.log combined
 </VirtualHost>
 EOF
-sudo a2ensite ai.$YOUR_DOMAIN.conf
+sudo a2ensite ai.conf
 sudo systemctl reload apache2
 sudo apt install -y php8.2-mbstring php8.2-xml php8.2-mysql php8.2-gd php8.2-bcmath php8.2-json php8.2-cli php8.2-curl php8.2-zip
 sudo apt install -y certbot python3-certbot-apache
 sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email $EMAIL -d ai.$YOUR_DOMAIN
 sudo systemctl restart apache2
 #echo "Installation de Ollama et de Ollama WebUI terminée"
+#echo "Installation du LLM Vigostral"
+cd  ~/
+sudo wget https://huggingface.co/TheBloke/Vigostral-7B-Chat-GGUF/resolve/main/vigostral-7b-chat.Q4_K_M.gguf
+cat >> ~/Modelfile <<EOF
+FROM ~/vigostral-7b-chat.Q4_K_M.gguf
+PARAMETER temperature 0.2
+SYSTEM """You are a helpfull assistant who answer always and only in French."""
+sudo ollama create vigostral-local -f Modelfile
+EOF
 #echo "Installation de Whisper WebUI - logiciel de reconnaissance vocale"
 cd /var/www/html/ 
 sudo git clone https://github.com/xenova/whisper-web.git 
@@ -756,11 +783,13 @@ ErrorLog ${APACHE_LOG_DIR}/whisperweb.$YOU_DOMAIN.error.log
 CustomLog ${APACHE_LOG_DIR}/whisperweb.$YOUR_DOMAIN.access.log combined
 </VirtualHost>
 EOF
-sudo a2ensite vocal.$YOUR_DOMAIN.conf
+sudo a2ensite vocal.conf
 sudo systemctl reload apache2
 sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email $EMAIL -d vocal.$YOUR_DOMAIN
 sudo systemctl restart apache2
 #echo "Installation de Whisper WebUI terminée"
 IP_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com)
 echo "L'addresse IP de ce server est : $IP_ADDRESS"
-clear
+echo "Votre nom d'utilisateur principal pour Nextcloud, InvoiceNinja et Wordpress est  : $NEXTCLOUD_USER"
+echo "Votre mot de passe principal est  : $NEXTCLOUD_PASSWORD"
+echo "Votre nom de domaine est  : $YOUR_DOMAIN"
