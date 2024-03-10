@@ -546,7 +546,7 @@ echo "Pour terminer l'installation du serveur e-mail, visionnez cette vidéo : h
 echo "Installation de php composer"
 cd ~
 curl -sS https://getcomposer.org/installer -o composer-setup.php
-sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+Yes | sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 echo "Installation de InvoiceNinja"
 sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.8.23/invoiceninja.zip
 sudo apt install -y --no-install-recommends --quiet unzip
