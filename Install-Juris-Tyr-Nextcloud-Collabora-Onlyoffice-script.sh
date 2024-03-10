@@ -803,4 +803,4 @@ sudo sed -i '#Port 22/#Port 34067' /etc/ssh/sshd_config
 sudo ufw allow 34067/tcp
 Yes | sudo ufw reload
 sudo /sbin/iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 34067 -j ACCEPT
-echo "Attention, le nouveau port pour accéder au serveur via ssh n'est plus 22 mais 34067
+echo "Attention, le nouveau port pour accéder au serveur via ssh n'est plus 22 mais 34067"
