@@ -17,11 +17,17 @@ audio.exemple.com : pour utiliser la lecture vocale de textes
 mail.exemple.com : pour créer et éditer les adresses e-mails de votre cabinet d’avocats ou entreprise.
 
 Les étapes pour installer la solution logicielle proposée par Cloud Juris-Tyr sont :
+
 1 - Souscrire à une offre d’un serveur VPS sur : ovhcloud.com/fr/vps/ [ ➡️ étape 1 ]
+
 2 - Acheter un nom de domaine sur : ovhcloud.com/fr/domains/ [ ➡️ étape 2 ]
+
 3 - Configurer la zone DNS de votre nom de domaine [ ➡️ étape 3 ]
+
 4 - Se connecter à votre nouveau serveur VPS avec le logiciel Putty [ ➡️ étape 4 ]
+
 5 - Lancer nos scripts d’installation et configurer les logiciels [ ➡️ étape 5 ]
+
 
 Nous ne recevons aucun avantage ni ne percevons de rémunération de l’hébergeur OVHCloud. Les démarches d’installation fonctionnent avec n’importe quel VPS d’un autre prestataire, à partir du moment ou le VPS/serveur fonctionne sous Ubuntu 22.04 et dispose d’au moins 4go de mémoire vive.
 
