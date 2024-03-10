@@ -1,0 +1,99 @@
+!/bin/bash
+Demandes des données pour l'installation
+echo "enregistrez une adresse DNS : mail.$YOUR_DOMAIN mx record"
+echo "Indiquez votre nom de domaine (exemple.com):"
+read YOUR_DOMAIN
+echo "Indiquez votre prénom en lettres miniscules (john):"
+read MODOBOA_USER
+echo "Indiquez votre adresse mail sous la forme contact@exemple.com ou john-snow@exemple.com (si vous etes John SNOW…):"
+read EMAIL
+adduser $MODOBOA_USER
+su - $MODOBOA_USER
+echo "Continue with the installation process using provided inputs"
+clear
+sudo apt-get install --no-install-recommends --quiet libapache2-mod-wsgi
+sudo systemctl restart apache2
+sudo git clone https://github.com/modoboa/modoboa-installer
+sudo apt-get install --no-install-recommends --quiet python-virtualenv python-pip
+cd modoboa-installer
+sudo ./run.py --stop-after-configfile-check $YOUR_DOMAIN
+sudo sed -i 'type = letsencrypt/#type = letsencrypt' ./modoboa-installer/installer.cfg
+sudo sed -i 'type = nginx/type = self-signed' ./modoboa-installer/installer.cfg
+sudo sed -i '[nginx]
+enabled = true/[nginx]
+enabled = false' ./modoboa-installer/installer.cfg
+echo "#sudo nano installer.cfg
+#[general]
+#hostname = mail.%(domain)s
+#[certificate]
+#generate = true
+#type = letsencrypt
+#type = letsencrypt
+#type = nginx
+#type = self-signed
+#[letsencrypt]
+#email = admin@$YOUR_DOMAIN
+#[database]
+#engine = postgres
+#host = 127.0.0.1
+#install = true
+#[postgres]
+#user = postgres
+#password =
+#…
+#[nginx]
+#enabled = false"
+sudo hostnamectl set-hostname mail.$YOUR_DOMAIN
+sudo ./run.py --interactive $YOUR_DOMAIN
+sudo ./run.py --interactive --debug $YOUR_DOMAIN
+cat >> /etc/apache2/sites-available/modoboa.conf < ServerName mail.$YOUR_DOMAIN DocumentRoot /srv/modoboa/instance/ Alias /media/ /srv/modoboa/instance/media/ Order deny,allow Allow from all Alias /sitestatic/ /srv/modoboa/instance/sitestatic/ Order deny,allow Allow from all EOF sudo a2ensite modoboa.conf sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT echo "Installation de LetsEncrypt et configuration" sudo apt install -y --no-install-recommends --quiet certbot python3-certbot-apache sudo certbot --apache --agree-tos --redirect --staple-ocsp --email $EMAIL -d mail.$YOUR_DOMAIN sudo systemctl restart apache2 sudo bash -c 'echo "" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo " Options Indexes FollowSymLinks" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo " AllowOverride None" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo " Require all granted" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo "" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo "WSGIScriptAlias / /srv/modoboa/instance/instance/wsgi.py" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo "WSGIPythonHome /srv/modoboa/env/" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo "WSGIPythonPath /srv/modoboa/instance/" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo " " >> /etc/apache2/apache2.conf' sudo bash -c 'echo "" >> /etc/apache2/apache2.conf' sudo bash -c 'echo " Require all granted" >> /etc/apache2/apache2.conf' sudo bash -c 'echo "" >> /etc/apache2/apache2.conf' sudo bash -c 'echo "" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo "WSGIPassAuthorization On" >> /etc/apache2/apache2.conf'
+sudo apt-get install -y --no-install-recommends --quiet software-properties-common
+yes | sudo add-apt-repository ppa:certbot/certbot
+sudo apt update --quiet
+sudo apt install -y --no-install-recommends --quiet python-certbot-apache
+sudo certbot renew --dry-run
+sudo bash -c 'echo "WSGIDaemonProcess your-domain.com python-path=/srv/modoboa/instance:/srv/modoboa/env/lib/python2.7/site-packages" >> /etc/apache2/apache2.conf'
+sudo bash -c 'echo "WSGIProcessGroup $YOUR_DOMAIN" >> /etc/apache2/apache2.conf'
+sudo apt install dovecot-pop3d
+Let’s Encrypt TLS certificate is valid for 90 days. To automatically renew the certificate, edit root user’s crontab file.
+sudo crontab -e
+Add the following line at the end of this file.
+@daily /usr/bin/certbot renew -q && systemctl reload apache2 postfix dovecot
+echo "Tapez la touche 1 pour choisir l'éditeur de texte nano puis sur les touches Control et C"
+sudo -u www-data crontab -e
+echo "1"
+read -s 1
+$1
+cat >> /tmp/modoboa.txt <<EOF
+@daily systemctl reload postfix dovecot
+MAITO=$EMAIL
+EOF
+#Add the cronjob to www-data user's crontab
+sudo crontab -u www-data /tmp/modoboa-cron.txt
+rm /tmp/nextcloud-cron.txt
+clear
+echo "The installation process can take a while. It took 10 minutes on my server. Once it’s installed, restart your server to make sure each service will start automatically."
+#sudo shutdown -r now
+#If you see an error during the installation, you can use the --debug option to see the more detailed output:
+#sudo ./run.py --interactive --debug example.com
+echo "Une fois que Modoboa a terminé l'installation, vous pouvez vous connecter au panneau d'administration avec le nom d'utilisateur admin et le mot de passe."
+echo "Allez sur https://mail.votre-domaine.com"
+echo "Votre connexion est Admin et le mot de passe est mot de passe. Une fois connecté, changez votre nom d'utilisateur et/ou votre mot de passe. Cliquez sur le nom d'utilisateur en haut à droite du panneau de menu, puis allez dans paramètres, profil pour effectuer les modifications. Pour configurer des domaines pour le serveur, cliquez sur Domaines dans la barre de menu supérieure, puis cliquez sur le bouton Ajouter+. Assurez-vous d'activer la signature Dkim. Une fois le domaine configuré, vous pouvez récupérer la clé publique pour DKIM en sélectionnant Domaines dans la barre de menu supérieure, puis cliquez sur le nom de domaine. Cliquez sur le bouton Afficher la clé dans la zone DNS en haut à droite. Vous devrez ajouter la clé de domaine à vos paramètres DNS."
+echo "Vous devez modifier les ports IMAP et SMTP et activer SSL/TLS. Cliquez sur Modoboa dans la barre de menu, puis sélectionnez l'onglet Webmail. Sous les paramètres IMAP, cliquez sur le bouton radio pour utiliser une connexion sécurisée. et changez le port en 993. Sous les paramètres SMTP, cliquez sur le bouton radio pour activer STARTTLS, changez le port du serveur en 587, puis cliquez sur le bouton radio 'Oui' pour exiger l'authentification. Cliquez sur Enregistrer."
+echo "Allez dans l'onglet Domaines et cliquez sur le bouton Ajouter pour ajouter un nouveau domaine."
+echo "Dans l'écran suivant, vous pouvez choisir de créer un compte administrateur pour votre domaine. Le protocole SMTP exige qu'un serveur de messagerie ait une adresse postmaster@$YOUR_DOMAIN."
+echo "Ensuite, entrez votre nom de domaine principal dans le champ Nom. Il est fortement recommandé d'activer la signature DKIM, ce qui peut contribuer à la réputation de votre domaine. Dans le champ Sélecteur de clé, vous pouvez saisir un mot aléatoire comme modoboa. Choisissez 2048 comme clé. longueur."
+echo "Cliquez sur le bouton Soumettre et votre nom de domaine sera ajouté dans Modoboa."
+echo "Notez que le compte administrateur par défaut créé lors de l'installation n'est pas un compte de messagerie. Pour ajouter des adresses e-mail, accédez à l'onglet Domaines et cliquez sur votre nom de domaine."
+echo "Puis cliquez sur les boîtes aux lettres."
+echo "Cliquez sur le bouton Ajouter et choisissez Compte."
+echo "Ensuite, choisissez Utilisateur simple comme rôle. Entrez une adresse e-mail dans le champ Nom d'utilisateur et entrez un mot de passe." echo "Dans l'écran suivant, vous pouvez éventuellement créer un alias pour cette adresse e-mail. Après avoir cliqué sur le bouton Soumettre, l'adresse e-mail est créée"
