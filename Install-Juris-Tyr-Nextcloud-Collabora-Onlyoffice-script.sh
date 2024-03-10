@@ -791,7 +791,41 @@ sudo a2ensite vocal.conf
 sudo systemctl reload apache2
 sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email $EMAIL -d vocal.$YOUR_DOMAIN
 sudo systemctl restart apache2
+echo "Tapez la touche 1 pour choisir l'éditeur de texte nano puis sur les touches Control et C"
+sudo -u www-data crontab -e
+echo "1"
+read -s 1
+$1
+cat >> /tmp/webwhisper-cron.txt <<EOF
+@reboot cd /var/www/html/whisper-web && npm run dev
+EOF
+#Add the cronjob to www-data user's crontab
+sudo crontab -u www-data /tmp/webwhisper.txt
+rm /tmp/webwhisper.txt
 echo "Installation de Whisper WebUI terminée"
+echo "Installation de Web-speech-synthesis-and-recognition"
+sudo mkdir /var/www/html/ai/ && cd /var/www/html/ai/
+sudo git clone https://github.com/AyushShahh/web-speech-synthesis-and-recognition.git && cd web-speech-synthesis-and-recognition
+sudo chown www-data-www-data -R /var/www/html/ai/web-speech-synthesis-and-recognition
+sudo chmod 775 -R /var/www/html/ai/web-speech-synthesis-and-recognition
+cat >> /etc/apache2/sites-available/audio.conf <<EOF
+<VirtualHost *:80>
+ServerName audio.$YOUR_DOMAIN
+DocumentRoot "/var/www/html/ai/web-speech-synthesis-and-recognition"
+ErrorLog ${APACHE_LOG_DIR}/speech.error
+CustomLog ${APACHE_LOG_DIR}/speech.access combined
+<Directory /var/www/html/ai/web-speech-synthesis-and-recognition>
+AllowOverride All
+</Directory>
+ErrorLog ${APACHE_LOG_DIR}/web-speech.$YOU_DOMAIN.error.log
+CustomLog ${APACHE_LOG_DIR}/web-speech.$YOUR_DOMAIN.access.log combined
+</VirtualHost>
+EOF
+sudo a2ensite vocal.conf
+sudo systemctl reload apache2
+sudo certbot --apache --agree-tos --redirect --hsts --uir --staple-ocsp --email $EMAIL -d audio.$YOUR_DOMAIN
+sudo systemctl restart apache2
+echo "Installation de Web-speech-synthesis-and-recognition terminée"
 IP_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com)
 echo "L'addresse IP de ce server est : $IP_ADDRESS"
 echo "Votre nom d'utilisateur principal pour Nextcloud, InvoiceNinja et Wordpress est  : $NEXTCLOUD_USER"
