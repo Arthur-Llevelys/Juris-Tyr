@@ -46,7 +46,27 @@ echo "#sudo nano installer.cfg
 sudo hostnamectl set-hostname mail.$YOUR_DOMAIN
 sudo ./run.py --interactive $YOUR_DOMAIN
 sudo ./run.py --interactive --debug $YOUR_DOMAIN
-cat >> /etc/apache2/sites-available/modoboa.conf < ServerName mail.$YOUR_DOMAIN DocumentRoot /srv/modoboa/instance/ Alias /media/ /srv/modoboa/instance/media/ Order deny,allow Allow from all Alias /sitestatic/ /srv/modoboa/instance/sitestatic/ Order deny,allow Allow from all EOF sudo a2ensite modoboa.conf sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT echo "Installation de LetsEncrypt et configuration" sudo apt install -y --no-install-recommends --quiet certbot python3-certbot-apache sudo certbot --apache --agree-tos --redirect --staple-ocsp --email $EMAIL -d mail.$YOUR_DOMAIN sudo systemctl restart apache2 sudo bash -c 'echo "" >> /etc/apache2/apache2.conf'
+cat >> /etc/apache2/sites-available/modoboa.conf <<EOF
+<VirtualHost *:80> 
+ServerName mail.$YOUR_DOMAIN
+DocumentRoot /srv/modoboa/instance/
+Alias /media/ 
+<Directory "/srv/modoboa/instance/media/">
+Order deny,allow
+Allow from all
+</Directory>
+Alias /sitestatic/ 
+<Directory "/srv/modoboa/instance/sitestatic/"> 
+Order deny,allow 
+Allow from all
+</Directory>
+Alias /new-admin 
+<Directory "/home/modoboa/instance/frontend">
+Order deny,allow
+Allow from all
+</Directory>
+</VirtualHost>
+EOF
 sudo bash -c 'echo " Options Indexes FollowSymLinks" >> /etc/apache2/apache2.conf'
 sudo bash -c 'echo " AllowOverride None" >> /etc/apache2/apache2.conf'
 sudo bash -c 'echo " Require all granted" >> /etc/apache2/apache2.conf'
