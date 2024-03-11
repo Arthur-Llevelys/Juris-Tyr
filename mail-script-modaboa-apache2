@@ -50,21 +50,26 @@ cat >> /etc/apache2/sites-available/modoboa.conf <<EOF
 <VirtualHost *:80> 
 ServerName mail.$YOUR_DOMAIN
 DocumentRoot /srv/modoboa/instance/
-Alias /media/ 
-<Directory "/srv/modoboa/instance/media/">
-Order deny,allow
-Allow from all
+Alias /media/ /srv/modoboa/media/
+<Directory /srv/modoboa/media/>
+Options FollowSymLinks
+Require all granted
 </Directory>
-Alias /sitestatic/ 
-<Directory "/srv/modoboa/instance/sitestatic/"> 
-Order deny,allow 
-Allow from all
+Alias /sitestatic/ /srv/modoboa/sitestatic/
+<Directory /srv/modoboa/sitestatic/>
+Options FollowSymLinks
+Require all granted
 </Directory>
-Alias /new-admin 
-<Directory "/home/modoboa/instance/frontend">
-Order deny,allow
-Allow from all
+Alias /new-admin /srv/modoboa/frontend
+<Directory /srv/modoboa/frontend>
+Options FollowSymLinks
+Require all granted
 </Directory>
+WSGIScriptAlias / /srv/modoboa/instance/wsgi.py
+WSGIApplicationGroup %{GLOBAL}
+# Pass Authorization header to enable API usage:
+WSGIPassAuthorization On
+LogLevel info
 </VirtualHost>
 EOF
 sudo bash -c 'echo " Options Indexes FollowSymLinks" >> /etc/apache2/apache2.conf'
