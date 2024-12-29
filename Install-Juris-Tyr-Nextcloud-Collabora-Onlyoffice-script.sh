@@ -109,13 +109,10 @@ GRANT ALL PRIVILEGES ON DATABASE nextcloud TO $NEXTCLOUD_USER;
 EOF
 echo "Installation de Nextcloud"
 sudo apt install -y --no-install-recommends  unzip
-# Téléchargement et extraction de Nextcloud 28.0.1
-
-echo "Téléchargement de Nextcloud, extraction et propriété..."
 cd /var/www/html
-sudo wget https://download.nextcloud.com/server/releases/nextcloud-28.0.1.zip
-sudo unzip nextcloud-28.0.1.zip
-sudo mv nextcloud-28.0.1/* .
+sudo wget https://download.nextcloud.com/server/releases/nextcloud-30.0.4.zip
+sudo unzip nextcloud-30.0.4.zip
+sudo mv nextcloud-30.0.4/* .
 sudo chown -R www-data:www-data /var/www/html/nextcloud
 sudo chmod 750 /var/www/html/nextcloud/config
 sudo chmod 750 /var/www/html/nextcloud/core
@@ -198,16 +195,16 @@ sudo apt autoremove -y
 echo "Installation de Nextcloud terminée"
 echo "Amélioration des performances de Nextcloud"
 #Amélioration des performances :
+sudo sed -i 'pm = dynamic' /etc/php/8.2/fpm/pool.d/www.conf
+sudo sed -i 'pm.max_children = 120' /etc/php/8.2/fpm/pool.d/www.conf
+sudo sed -i 'pm.start_servers = 12' /etc/php/8.2/fpm/pool.d/www.conf
+sudo sed -i 'pm.min_spare_servers = 6' /etc/php/8.2/fpm/pool.d/www.conf
+sudo sed -i 'pm.max_spare_servers = 18' /etc/php/8.2/fpm/pool.d/www.conf
 sudo sed -i 'pm = dynamic
-pm.max_children = 120
-pm.start_servers = 12
-pm.min_spare_servers = 6
-pm.max_spare_servers = 18' /etc/php/8.2/fpm/pool.d/www.conf
-sudo sed -i 'pm = dynamic
-pm.max_children = 120
-pm.start_servers = 12
-pm.min_spare_servers = 6
-pm.max_spare_servers = 18' /etc/php/8.3/fpm/pool.d/www.conf
+sudo sed -i 'pm.max_children = 120' /etc/php/8.3/fpm/pool.d/www.conf
+sudo sed -i 'pm.start_servers = 12' /etc/php/8.3/fpm/pool.d/www.conf
+sudo sed -i 'pm.min_spare_servers = 6' /etc/php/8.3/fpm/pool.d/www.conf
+sudo sed -i 'pm.max_spare_servers = 18' /etc/php/8.3/fpm/pool.d/www.conf
 sudo systemctl reload php8.2-fpm php8.3-fpm
 sudo sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
 sudo sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.3/fpm/pool.d/www.conf
@@ -603,7 +600,7 @@ cat >> /tmp/invoiceninja-cron.txt <<EOF
 0 8 * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan ninja:send-reminders > /dev/null
 * * * * * /usr/bin/php8.2 /var/www/html/invoiceninja/artisan schedule:run >> /dev/null 2>&1
 EOF
-#Add the cronjob to www-data user's crontab
+#Ajout d'un cronjob au crontab de l'utilisateur www-data
 sudo crontab -u www-data /tmp/invoiceninja-cron.txt
 rm /tmp/invoiceninja-cron.txt
 echo "Installation de InvoiceNinja terminée"
